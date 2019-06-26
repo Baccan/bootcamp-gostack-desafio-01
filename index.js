@@ -7,9 +7,31 @@ const port = 3000;
 
 // Projetos
 const projects = [];
+let totalRequisicoes = 0;
 
-// Rotas
+// Middlewares globais
+app.use((req, res, next) => {
+  totalRequisicoes += 1;
 
+  console.log(`O total de requisições é: ${totalRequisicoes}`);
+  return next();
+});
+
+// Middlewares locais
+function projectIdCheck(req, res, next) {
+  const { id } = req.params;
+
+  if (!id || !projects.find(item => item.id === id)) {
+    res.status(400);
+    return res.json({ error: "Id de projeto não encontrado..." });
+  }
+
+  return next();
+}
+
+/*
+ * Rotas
+ */
 // @POST /projects { id, title }
 // @desc Cria um projeto no array projects
 app.post("/projects", (req, res) => {
@@ -37,7 +59,7 @@ app.get("/projects", (req, res) => {
 
 // @PUT /projects/:id
 // @desc Altera apenas o titulo do projeto com o parametro id passado no array projects
-app.put("/projects/:id", (req, res) => {
+app.put("/projects/:id", projectIdCheck, (req, res) => {
   const { id } = req.params;
   const { title } = req.body;
 
@@ -51,7 +73,7 @@ app.put("/projects/:id", (req, res) => {
 
 // @DELETE /projects/:id
 // @desc Deleta o projeto com o parametro id passado no array projects
-app.delete("/projects/:id", (req, res) => {
+app.delete("/projects/:id", projectIdCheck, (req, res) => {
   const { id } = req.params;
 
   const project = projects.findIndex(item => item.id === id);
@@ -64,7 +86,7 @@ app.delete("/projects/:id", (req, res) => {
 
 // @POST /projects/:id/tasks { title }
 // @desc Adiciona uma task ao projeto com o parametro id passado no array projects
-app.post("/projects/:id/tasks", (req, res) => {
+app.post("/projects/:id/tasks", projectIdCheck, (req, res) => {
   const { id } = req.params;
   const { title } = req.body;
 
